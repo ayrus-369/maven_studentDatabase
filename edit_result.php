@@ -146,7 +146,8 @@ if(isset($_SESSION['user_data'])){
             </div>
             <div class="painel-body">
                 <form action="edit_result_post.php" method="post">
-                    <input type="hidden" name="result_id" value="<?php echo $result_row['id']; ?>">
+                    <input type="hidden" name="result_id" value="<?php if($is_result
+                    ) echo $result_row['id']; ?>">
                     <input type="hidden" name="student_id" value="<?php echo $_REQUEST['id']; ?>">
 
                     <?php if($is_result){ ?>

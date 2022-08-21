@@ -2,29 +2,28 @@
 session_start();
 include 'connect.php';
 if(isset($_SESSION['user_data'])){
-	if($_SESSION['user_data']['usertype']!=1){
-		header("Location:student_home.php");
-	}
-	if(!isset($_REQUEST['id'])){
-		header("Location:teacher_home.php?error=Please Enter ID");
-	} 
-	$qr=mysqli_query($con,"select * from users where id='".$_REQUEST['id']."'");
-	if(mysqli_num_rows($qr)==0){
-		header("Location:teacher_home.php?error=Student ID Not Found");	
-	}
-	$result_qr=mysqli_query($con,"select * from results where student_id='".$_REQUEST['id']."'");
-	if(mysqli_num_rows($result_qr)>0){
-		header("Location:teacher_home.php?error=Student Result Already Exist");	
-	}
-	$subjects=array();
-	$subject_qr=mysqli_query($con,"select * from subjects");
-	while($row=mysqli_fetch_assoc($subject_qr)){
-		array_push($subjects,$row);
+	if($_SESSION['user_data']['usertype']!=2){
+		header("Location:teacher_home.php");
 	}
 
+	$result_data=array();
+	$is_result=false;
+	$result=mysqli_query($con,"select * from results where student_id='".$_SESSION['user_data']['id']."'");
+	if(mysqli_num_rows($result)>0){
+		$is_result=true;
+		$result_row=mysqli_fetch_assoc($result);
+
+		$data_qr=mysqli_query($con,"select result_data.*,subjects.subject_name from result_data,subjects where subjects.id=result_data.subject_id and result_data.result_id='".$result_row['id']."'");
+
+
+		while($row=mysqli_fetch_assoc($data_qr)){
+			array_push($result_data,$row);
+		}
+		echo mysqli_error($con);
+	}
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
@@ -70,11 +69,10 @@ if(isset($_SESSION['user_data'])){
         box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.5);
     }
     </style>
-    <title>Edit Result</title>
-
 </head>
 
 <body>
+
     <nav class="topnav">
         <div class="logo">
             <a href="#" class="display-sm display-md" id="menu"><i class="fa fa-list-ul"></i></a>
@@ -98,56 +96,66 @@ if(isset($_SESSION['user_data'])){
             </div>
         </div>
     </nav>
-    <aside class="sidenav hidden-sm hidden-md" id="nav">
-        <div class="list">
-            <a href="teacher_home.php"><i class="fa fa-home"></i> Home</a>
-            <a href="update.php"><i class="fa fa-users"></i>Update Students</a>
 
-            <script>
-            const currentLocation = location.href;
-            const menuItem = document.querySelectorAll('a');
-            const menuLength = menuItem.length;
-            for (let i = 0; i < menuLength; i++) {
-                if (menuItem[i].href === currentLocation) {
-                    menuItem[i].className = "active";
-                }
-            }
-            </script>
 
-        </div>
-    </aside>
 
     <main class="content">
 
-        <div class="painel-body">
-            <form action="add_result_post.php" class="form" method="post">
+
+        <div class="grid">
+            <div class="painel box">
                 <div class="painel-header">
-                    <h4 class="painel-title">Add Results</h4>
+                    <h4 class="painel-title">Table</h4>
+
+
                 </div>
+                <div class="painel-body">
 
 
+                    <?php if($is_result) { ?>
 
+                    <table class="table">
+                        <tr>
+                            <th colspan="3">Result</th>
+                        </tr>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Marks</th>
+                            <th>Marks Obtained</th>
+                        </tr>
+                        <?php foreach($result_data as $result){ ?>
+                        <tr>
+                            <td>
+                                <?php echo $result['subject_name']; ?>
+                            </td>
+                            <td>
+                                100
+                            </td>
+                            <td>
+                                <?php echo $result['marks']; ?>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                    </table>
 
-
-                <div class="group">
-                    <input type="hidden" name="student_id" value="<?php echo $_REQUEST['id']; ?>">
-                    <?php foreach($subjects as $subject)  { ?>
-                    <div class="col-lg-12 form-group">
-                        <label><?php echo $subject['subject_name']; ?></label>
-                        <input type="hidden" name="id[]" value="<?php echo $subject['id']; ?>">
-                        <input type="text" name="marks[]" class="form-control" placeholder="Marks">
-
+                    <?php } else { ?>
+                    <div class="col-lg-12">
+                        <h2>Result Not Found!</h2>
                     </div>
-                    <?php } ?>
-                </div>
-                <div class="group">
+                    <?php }	?>
 
-                    <input type="submit" class="btn btn-blue" style="width: 40%" value="Add Results" />
-                </div>
 
-            </form>
+
+
+                </div>
+            </div>
+
+
         </div>
+
+
     </main>
+    <script src="public/js/main.js"></script>
 </body>
 
 </html>
